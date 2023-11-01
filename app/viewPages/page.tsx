@@ -1,56 +1,30 @@
 'use client'
-import Image from 'next/image'
 import { Editor } from '@tinymce/tinymce-react'
-import { useState } from 'react'
-import axios, { Axios } from 'axios'
+import { useEffect, useState } from 'react'
 
-export default function Home() {
+export default function ViewPages() {
   const [text, setText] = useState('')
-  const [value, setValue] = useState('<p> TinyMCE editor text </p>')
-
-  const onSave = async (e: any) => {
-    e.preventDefault()
-
-    // const res = await fetch('http://localhost:3008/post/newpage', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({
-    //     htmlContent: value,
-    //     textOnlyContent: text,
-    //   }),
-    //
-    // })
-    let body = {
-      data: JSON.stringify({
-        htmlContent: value,
-        textOnlyContent: text,
-      }),
-    }
-
-    axios.post('http://localhost:3008/post/newpage', body).then((response) => {
-      console.log(response.data)
-    })
+  const [value, setValue] = useState('')
+  const onFetch = async () => {
+    const res = await fetch('http://localhost:3008/get/pages/1')
+    const pageDataStringified = await res.json()
+    console.log(pageDataStringified.message)
+    const pageData = JSON.parse(pageDataStringified.message)
+    console.log(pageData)
+    setValue(pageData.htmlContent)
+    setText(pageData.textOnlyContent)
   }
+
+  useEffect(() => {
+    onFetch()
+  }, [])
+
   console.log('VALUE ==> ', value)
   console.log('TEXT ==> ', text)
 
   return (
     <div className='min-w-full min-h-full w-full container'>
-      <div className='w-full p-20'>
-        <button
-          onClick={(e) => onSave(e)}
-          className='bg-white shadow-2xl p-2 text-base rounded-md text-black'
-        >
-          {' '}
-          Save{' '}
-        </button>
-        <h1 className='text-lg text-center shadow-2xl capitalize h-6'>
-          {' '}
-          Test our integrated, basic tiny MCE WSYWYG-Rich-Text-Editor
-        </h1>
-      </div>
+      <div className='w-full p-20'></div>
       <div className='min-h-screen min-h-full min-w-full flex items-stretch justify-start'>
         <Editor
           apiKey='8qaolh6gudre3h70mzloumvlk6maazqyfko3xhrgw64petzg'
@@ -63,7 +37,6 @@ export default function Home() {
           onInit={(evt, editor) => {
             setText(editor.getContent({ format: 'text' }))
           }}
-          initialValue='<h1>TinyMCE rich text editor</h1>'
           value={value}
           init={{
             width: '100%',
