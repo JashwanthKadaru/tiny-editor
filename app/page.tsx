@@ -2,7 +2,7 @@
 import Image from 'next/image'
 import { Editor } from '@tinymce/tinymce-react'
 import { useState } from 'react'
-import axios, { Axios } from 'axios'
+import axios, { Axios, AxiosResponse } from 'axios'
 
 export default function Home() {
   const [text, setText] = useState('')
@@ -32,6 +32,18 @@ export default function Home() {
     axios.post('http://localhost:3008/post/newpage', body).then((response) => {
       console.log(response.data)
     })
+  }
+
+  const uploadFile = (blobInfo: any) => {
+    const formData = new FormData()
+    formData.append('image', blobInfo.blob())
+
+    let response = fetch('http://localhost:3008/upload/images', {
+      method: 'POST',
+      body: formData,
+    })
+
+    return response
   }
   console.log('VALUE ==> ', value)
   console.log('TEXT ==> ', text)
@@ -66,12 +78,31 @@ export default function Home() {
           initialValue='<h1>TinyMCE rich text editor</h1>'
           value={value}
           init={{
+            images_upload_handler: async (blobInfo) => {
+              return new Promise((resolve, reject) => {
+                uploadFile(blobInfo)
+                  .then(async (data) => {
+                    console.log('data', data)
+                    let url = ''
+                    try {
+                      let body = await data.json()
+                      url = body.url
+                    } catch (err) {
+                      console.log(err)
+                    }
+                    resolve(url)
+                  })
+                  .catch((e) => {
+                    reject(e)
+                  })
+              })
+            },
             width: '100%',
             height: '100%',
             min_height: 900,
             resize: true,
             plugins:
-              'a11ychecker advcode advlist advtable anchor autocorrect autolink autoresize autosave casechange charmap checklist code codesample directionality editimage emoticons export footnotes formatpainter fullscreen help image importcss inlinecss insertdatetime link linkchecker lists media mediaembed mentions mergetags nonbreaking pagebreak pageembed permanentpen powerpaste preview quickbars save searchreplace table tableofcontents template tinycomments tinydrive tinymcespellchecker typography visualblocks visualchars wordcount',
+              'a11ychecker advcode advlist advtable anchor autocorrect autolink autoresize autosave casechange charmap checklist code codesample directionality editimage emoticons export footnotes formatpainter fullscreen help image importcss inlinecss insertdatetime link linkchecker lists media mediaembed mentions mergetags nonbreaking pagebreak pageembed permanentpen powerpaste preview quickbars save searchreplace table tableofcontents template tinymcespellchecker typography visualblocks visualchars wordcount',
             menu: {
               file: {
                 title: 'File',
@@ -86,7 +117,7 @@ export default function Home() {
               view: {
                 title: 'View',
                 items:
-                  'code | visualaid visualchars visualblocks | spellchecker | preview fullscreen | showcomments',
+                  'code | visualaid visualchars visualblocks | spellchecker | preview fullscreen',
               },
               insert: {
                 title: 'Insert',
